@@ -22,13 +22,13 @@
         vm.gotoSummary = gotoSummary;
         vm.gotoParticipants = gotoParticipants;
         vm.removeParticipant = removeParticipant;
-        
+
 
         activate();
        
         function activate() {
             onDestroy();
-            common.activateController([initSession(), getLabs(), getParticipants()], controllerId);
+            common.activateController([initSession(), getLabs(true), getParticipants(true)], controllerId);
 
             $scope.$on('wizard:stepChanged',
                 function () {
@@ -42,7 +42,7 @@
                 if (typeof (vm.selectedParticipant) !== "string" && !datacontext.session.isParticipantInSession(vm.session, vm.selectedParticipant)) {
                     datacontext.sessionuser.create(
                         {
-                            user: vm.selectedParticipant,
+                            identity: vm.selectedParticipant,
                             session: vm.session,
                         });
                     vm.selectedParticipant = undefined;
@@ -104,7 +104,7 @@
         }
         
         function getParticipants(forceRefresh) {
-            return datacontext.user.getAll(forceRefresh)
+            return datacontext.identity.getAll(forceRefresh)
                .then(function (data) {
                    return vm.filteredParticipants = data;
                });
