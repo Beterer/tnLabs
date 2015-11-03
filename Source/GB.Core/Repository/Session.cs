@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,6 +18,12 @@ namespace GB.tnLabs.Core.Repository
         public int SessionId { get; set; }
 
         public string SessionName { get; set; }
+
+		public int IdentityId { get; set; }
+
+		//Trainer of the session
+		[ForeignKey("IdentityId")]
+		public virtual Identity Identity { get; set; }
 
         public int LabId { get; set; }
 

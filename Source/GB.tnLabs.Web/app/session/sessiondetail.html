@@ -1,5 +1,5 @@
 ﻿<section data-ng-controller="sessiondetail as vm">
-    <wizard on-finish="vm.createSession()" hide-indicators="true"> 
+    <wizard on-finish="vm.createSession()" hide-indicators="true">
         <wz-step ng-enter-tab="vm.gotoLabs()" title="Session Information">
             <h1>Please introduce session information</h1>
             <hr />
@@ -92,6 +92,38 @@
                 </div>
             </div>
         </wz-step>
+        <wz-step title="Session Trainer" data-step-scroll-to-top>
+            <h1>Please select a trainer</h1>
+            <hr />
+            <div class="form-horizontal">
+                <div class="form-group">
+                    <div class="col-sm-8">
+                        <div class="alert alert-danger alert-dismissable" data-ng-repeat="error in vm.errors">
+                            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">x</button>
+                            <span>{{error.errorMessage}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-8">
+                        <div class="input-group date col-sm-12">
+                            <select ng-model="vm.selectedTrainer">
+                                <option ng-repeat="trainer in vm.trainers"
+                                        value="{{trainer.identityId}}">
+                                    {{trainer.fullName}}
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-8">
+                        <input type="submit" wz-previous class="btn btn-warning pull-left" value="Previous" />
+                        <input type="submit" data-ng-click="vm.addTrainerToSession()" class="btn btn-success pull-right" value="Next" />
+                    </div>
+                </div>
+            </div>
+        </wz-step>
         <wz-step title="Session Schedule" ng-enter-tab="vm.gotoParticipants()">
             <h1>Please select a schedule</h1>
             <hr />
@@ -136,7 +168,7 @@
 
             </div>
         </wz-step>
-        
+
         <wz-step title="Session Participants" data-step-scroll-to-top>
             <h1>Please select participants</h1>
             <hr />

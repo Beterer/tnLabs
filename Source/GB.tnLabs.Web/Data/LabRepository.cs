@@ -86,7 +86,7 @@ namespace GB.tnLabs.Web.Data
                     if (!session.Removed && session.SessionId > 0)
                     {
                         //we will not wait for the completion to avoid a lag in the response
-                        Messaging.SendSession(session.StartDate, session.EndDate, session.SessionId, new Guid(session.Version));
+                        Messaging.SendSession(session.StartDate, session.EndDate, session.SessionId, session.IdentityId, new Guid(session.Version));
                     }
                 }
             }

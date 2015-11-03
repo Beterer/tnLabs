@@ -9,7 +9,7 @@ namespace GB.tnLabs.Core.SBDtos
 	public class StartSessionRequest
 	{
 		public int SessionId { get; set; }
-
+        public int IdentityId { get; set; }
 		public Guid Version { get; set; }
 	}
 }

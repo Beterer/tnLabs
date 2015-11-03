@@ -103,13 +103,13 @@ namespace GB.tnLabs.Core
 			client.Send(message);
 		}
 
-		public void SendSession(DateTimeOffset start, DateTimeOffset end, int sessionId, Guid version)
+		public void SendSession(DateTimeOffset start, DateTimeOffset end, int sessionId, int identityId, Guid version)
 		{
 			//TODO: errors at this level should be treated as critical
             DateTime utcActualStart = start.Subtract(Settings.SessionWarmUp).UtcDateTime;
             _logger.InfoFormat("Sending StartSessionRequest with SessionId: {0} Version: {1} Start(UTC): {2}",
                 version, sessionId, utcActualStart);
-			StartSessionRequest startRequest = new StartSessionRequest { Version = version, SessionId = sessionId};
+			StartSessionRequest startRequest = new StartSessionRequest { Version = version, SessionId = sessionId, IdentityId = identityId };
             Send(startRequest, utcActualStart);
 
             DateTime utcActualEnd = end.Add(Settings.SessionCoolDown).UtcDateTime;

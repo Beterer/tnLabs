@@ -5,16 +5,19 @@
 
     function sessions($cookies,$scope, $routeParams,$window, common, config, datacontext,spinner, WizardHandler) {
         var vm = this;
-       
+
         vm.filteredLabs = [];
         vm.session = undefined;
         vm.selectedParticipant = undefined;
         vm.filteredParticipants = [];
         vm.selectedParticipants = [];
+        vm.trainers = [];
+        vm.selectedTrainer = undefined;
         vm.startTime = '';
         vm.endTime = '';
 
         vm.addParticipantToSession = addParticipantToSession;
+        vm.addTrainerToSession = addTrainerToSession;
         vm.createSession = createSession;
         vm.estimatedPrice = undefined;
         vm.gotoLabs = gotoLabs;
@@ -25,10 +28,10 @@
 
 
         activate();
-       
+
         function activate() {
             onDestroy();
-            common.activateController([initSession(), getLabs(true), getParticipants(true)], controllerId);
+            common.activateController([initSession(), getLabs(true), getParticipants(true), getTrainers(true)], controllerId);
 
             $scope.$on('wizard:stepChanged',
                 function () {
@@ -37,7 +40,7 @@
         }
 
         function addParticipantToSession() {
-           
+
             if (vm.selectedParticipant !== undefined) {
                 if (typeof (vm.selectedParticipant) !== "string" && !datacontext.session.isParticipantInSession(vm.session, vm.selectedParticipant)) {
                     datacontext.sessionuser.create(
@@ -50,13 +53,20 @@
             }
         }
 
+        function addTrainerToSession() {
+            if (vm.selectedTrainer !== undefined) {
+                vm.session.identityId = vm.selectedTrainer;
+            }
+            gotoSchedule();
+        }      
+
         function createSession() {
 
             spinner.spinnerShow();
-            var subscription = $cookies.subscription;
-            vm.session.subscriptionId = subscription;
+            //var subscription = $cookies.subscription;
+            //vm.session.subscriptionId = subscription;
             datacontext.saveChanges().then(saveSucceded, saveFailed);
-            
+
             function saveSucceded() {
                 spinner.spinnerHide();
                 $window.history.back();
@@ -71,7 +81,7 @@
         function initSession() {
             var val = $routeParams.id;
             if (val === 'new') {
-            	vm.isNew = true;
+                vm.isNew = true;
                 var sDate = moment().add(1,'hours').minutes(0).seconds(0);
                 var eDate = moment().add(2, 'hours').minutes(0).seconds(0);
 
@@ -83,7 +93,7 @@
                 .then(function(data) {
                     vm.session = data;
                     vm.session.entityAspect.loadNavigationProperty("sessionUsers");
-					//if it's an edit, we need to keep the original values to calcuate the available resources later
+                    //if it's an edit, we need to keep the original values to calcuate the available resources later
                     vm.originalNumberOfUsers = vm.session.sessionUsers.length;
                     vm.originalVMSize = vm.session.vmSize;
                 }, function(error) {
@@ -95,21 +105,28 @@
                 $location.path('/sessions');
             }
         }
-       
+
         function getLabs(forceRefresh) {
             return datacontext.lab.getAll(forceRefresh)
                 .then(function (data) {
                     return vm.filteredLabs = data;
                 });
         }
-        
+
         function getParticipants(forceRefresh) {
             return datacontext.identity.getAll(forceRefresh)
                .then(function (data) {
                    return vm.filteredParticipants = data;
                });
         }
-        
+
+        function getTrainers(forceRefresh) {
+            return datacontext.identity.getTrainers(forceRefresh)
+               .then(function (data) {
+                   return vm.trainers = data;
+               });
+        }
+
         function gotoLabs() {
             var aspect = vm.session.entityAspect;
 
@@ -119,7 +136,7 @@
         }
 
         function gotoParticipants() {
-            
+
             var aspect = vm.session.entityAspect;
             //validate if lab was selected if yes go to next step
             if (aspect.validateEntity()) {
@@ -134,23 +151,23 @@
                 vm.errors = aspect.getValidationErrors('lab');
                 if (vm.errors.length > 0) {
                     vm.errors[0].errorMessage = 'Please select a lab';
-                } 
+                }
             } else {
                 vm.errors = [];
                 WizardHandler.wizard().next();
             }
         }
-        
+
         function gotoSummary() {
             spinner.spinnerShow();
-            
+
             if (!checkSessionHasParticipants()) return;
 
             datacontext.getAvailableSubscriptionResources(vm.session.startDate, vm.session.endDate)
                 .then(function (availableCPUs) {
-                	if (!vm.isNew) {
-                		availableCPUs = availableCPUs + vm.originalNumberOfUsers * common.vmCoreNumber(vm.originalVMSize);
-                	}
+                    if (!vm.isNew) {
+                        availableCPUs = availableCPUs + vm.originalNumberOfUsers * common.vmCoreNumber(vm.originalVMSize);
+                    }
 
                     var participantsNo = vm.session.sessionUsers.length;
                     var sessionCPUs = participantsNo * common.vmCoreNumber(vm.session.vmSize);
@@ -181,14 +198,14 @@
                 return errorMessage;
 
             }
-            
+
             function calculateEstimatedPrice() {
                 var vmPrice = common.vmPricingHour(vm.session.vmSize);
                 var participantsNo = vm.session.sessionUsers.length;
-                
+
                 var duration = moment.duration(vm.session.duration + 30, 'minutes');
                 var hours = duration.hours();
-                
+
                 if (duration.minutes() > 0) {
                     hours = hours + 1;
                 }
@@ -202,7 +219,7 @@
                     vm.errors.push({ errorMessage: 'Each session require at least one participant.' });
                     return false;
                 }
-                
+
                 return true;
             }
         }
@@ -212,7 +229,7 @@
                 datacontext.cancel();
             });
         }
-        
+
         function removeParticipant(participant) {
             datacontext.session.removeParticipant(vm.session, participant);
         }
